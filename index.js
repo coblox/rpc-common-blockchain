@@ -4,7 +4,7 @@ module.exports = function (options) {
   var txHexToJSON = require('bitcoin-tx-hex-to-json')
   var bitcoin = require('bitcoinjs-lib')
 
-  var GetTranasactions = function (txids, callback) {
+  var GetTransactions = function (txids, callback) {
     function batchCall () {
       txids.forEach(function (txid) {
         rpc.getRawTransaction(txid, 1)
@@ -84,7 +84,7 @@ module.exports = function (options) {
   }
 
   var Transactions = {
-    Get: GetTranasactions,
+    Get: GetTransactions,
     Latest: Latest,
     Outputs: Outputs,
     Propagate: PropagateTransaction,
@@ -137,15 +137,20 @@ module.exports = function (options) {
     })
   }
 
+  /// Note that since Bitcoin Core 0.17.0, listTransactions does not accept
+  /// An address argument anymore meaning the client may wish to filter the
+  /// Returned results
   var AddressTransactions = function (addresses, callback) {
-    var address = addresses[0]
-    // rpc.importAddress(address, address, true, function (err, res) {
-    // console.log(err, res)
-    rpc.listTransactions(address, 10, 0, true, function (err, res) {
-      console.log(err, res)
-      callback(false, [[{}]])
+    addresses.forEach(function (address) {
+      rpc.importAddress(address, address, true, false, function (err, res) {
+        console.log(err, res)
+      });
+    });
+
+    rpc.listTransactions('*', 100, 0, true, function (err, res) {
+      callback(err, res);
     })
-  // })
+
   }
 
   var Addresses = {
