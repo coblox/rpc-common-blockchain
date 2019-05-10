@@ -125,6 +125,15 @@ module.exports = function (options) {
       })
     }
 
+    if (!rpc.batch) {
+      rpc.batch = function(batchCallback, resultCallback) {
+        this.batchedCalls = [];
+        batchCallback();
+        rpc.call(this, this.batchedCalls, resultCallback);
+        this.batchedCalls = null;
+      };
+    }
+
     rpc.batch(batchCall, function (err, rawAddresses) {
       var _addresses = rawAddresses.map(function (rawAddress, i) {
         var address = {
